@@ -1,48 +1,97 @@
 import 'package:flutter/material.dart';
 import 'package:health_guard/pages/medication_details.dart';
 
-class MedicationsPage extends StatelessWidget {
+class MedicationsPage extends StatefulWidget {
   const MedicationsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Example list of medications with dynamic data
-    final List<Map<String, dynamic>> medications = [
-      {
-        "image": "assets/images/medication_a.jpg", // Replace with actual image path
-        "title": "Medication A",
-        "description": "This medication helps reduce inflammation and pain.",
-        "time": "10:00 AM",
-        "dosage": "Take 1 tablet",
-        "takenToday": false, // Tracks if the user has taken the dose today
-        "stock": 10, // Number of pills left in stock
-        "doctor": "Dr. John Doe", // Doctor who prescribed the medication
-        "reasonForChange": "", // Reason for requesting a change (initially empty)
-      },
-      {
-        "image": "assets/images/medication_b.jpg", // Replace with actual image path
-        "title": "Medication B",
-        "description": "This medication is used to treat high blood pressure.",
-        "time": "02:00 PM",
-        "dosage": "Take 2 tablets",
-        "takenToday": true, // Tracks if the user has taken the dose today
-        "stock": 5, // Number of pills left in stock
-        "doctor": "Dr. Jane Smith", // Doctor who prescribed the medication
-        "reasonForChange": "", // Reason for requesting a change (initially empty)
-      },
-      {
-        "image": "assets/images/medication_c.jpg", // Replace with actual image path
-        "title": "Medication C",
-        "description": "This medication improves sleep quality.",
-        "time": "06:00 PM",
-        "dosage": "Take 1 capsule",
-        "takenToday": false, // Tracks if the user has taken the dose today
-        "stock": 3, // Number of pills left in stock
-        "doctor": "Dr. Emily Johnson", // Doctor who prescribed the medication
-        "reasonForChange": "", // Reason for requesting a change (initially empty)
-      },
-    ];
+  State<MedicationsPage> createState() => _MedicationsPageState();
+}
 
+class _MedicationsPageState extends State<MedicationsPage> {
+  // List of medications with dynamic data
+  final List<Map<String, dynamic>> medications = [
+    {
+      "image": "assets/images/medication_a.jpg",
+      "title": "Medication A",
+      "description": "This medication helps reduce inflammation and pain.",
+      "time": "10:00 AM",
+      "dosage": "Take 1 tablet",
+      "takenToday": false,
+      "stock": 10,
+      "doctor": "Dr. John Doe",
+      "reasonForChange": "",
+    },
+    {
+      "image": "assets/images/medication_b.jpg",
+      "title": "Medication B",
+      "description": "This medication is used to treat high blood pressure.",
+      "time": "02:00 PM",
+      "dosage": "Take 2 tablets",
+      "takenToday": true,
+      "stock": 5,
+      "doctor": "Dr. Jane Smith",
+      "reasonForChange": "",
+    },
+    {
+      "image": "assets/images/medication_c.jpg",
+      "title": "Medication C",
+      "description": "This medication improves sleep quality.",
+      "time": "06:00 PM",
+      "dosage": "Take 1 capsule",
+      "takenToday": false,
+      "stock": 3,
+      "doctor": "Dr. Emily Johnson",
+      "reasonForChange": "",
+    },
+  ];
+
+  // Function to handle "Take Dosage" action
+  void _takeDosage(int index) {
+    setState(() {
+      medications[index]["takenToday"] = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${medications[index]["title"]} marked as taken.")));
+  }
+
+  // Function to handle "Restock" action
+  void _restockMedication(int index) {
+    final TextEditingController quantityController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Restock Medication"),
+          content: TextField(controller: quantityController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Enter Quantity")),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final String quantity = quantityController.text;
+                if (quantity.isNotEmpty) {
+                  setState(() {
+                    medications[index]["stock"] += int.parse(quantity);
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Added $quantity units to ${medications[index]["title"]}")));
+                  Navigator.pop(context); // Close the dialog after restocking
+                }
+              },
+              child: const Text("Restock"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: medications.length,
@@ -54,8 +103,8 @@ class MedicationsPage extends StatelessWidget {
             Navigator.push(context, MaterialPageRoute(builder: (context) => MedicationDetailsPage(medication: medication)));
           },
           child: Card(
-            elevation: 4, // Increased elevation for depth
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // Rounded corners
+            elevation: 4,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -65,15 +114,7 @@ class MedicationsPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Medication Image
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(
-                          medication["image"],
-                          width: 100, // Smaller image size
-                          height: 100, // Smaller image size
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                      ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.asset(medication["image"], width: 100, height: 100, fit: BoxFit.cover)),
                       const SizedBox(width: 16),
 
                       // Medication Details
@@ -117,10 +158,9 @@ class MedicationsPage extends StatelessWidget {
                       // Take Dosage Button
                       ElevatedButton.icon(
                         onPressed: () {
-                          // Update the "takenToday" status for this medication
-                          // In a real app, update the state or database here
+                          _takeDosage(index);
                         },
-                        icon: const Icon(Icons.check, size: 16, color: Colors.white), // White icon
+                        icon: const Icon(Icons.check, size: 16, color: Colors.white),
                         label: const Text("Take Dosage", style: TextStyle(color: Colors.white)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).primaryColor,
@@ -132,10 +172,9 @@ class MedicationsPage extends StatelessWidget {
                       // Restock Button
                       ElevatedButton.icon(
                         onPressed: () {
-                          // Open a dialog or navigate to restock the medication
-                          // In a real app, update the stock count or trigger an API call
+                          _restockMedication(index);
                         },
-                        icon: const Icon(Icons.add_box, size: 16, color: Colors.white), // White icon
+                        icon: const Icon(Icons.add_box, size: 16, color: Colors.white),
                         label: const Text("Restock", style: TextStyle(color: Colors.white)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:health_guard/pages/settings.dart'; // Import Settings Page
+import 'package:health_guard/pages/doctors_list.dart'; // Import Doctors List Page (for patients)
+import 'package:health_guard/pages/patients_list.dart'; // Import Patients List Page (for doctors)
+import 'package:qr_code_scanner/qr_code_scanner.dart'; // For QR Code Scanning
 
 class ProfilePage extends StatelessWidget {
   // Variable to switch between patient and doctor profiles
@@ -47,7 +51,7 @@ class ProfilePage extends StatelessWidget {
           if (isDoctor)
             GestureDetector(
               onTap: () {
-                // Navigate to the list of patients
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientsListPage()));
               },
               child: Card(
                 margin: const EdgeInsets.symmetric(vertical: 8),
@@ -71,7 +75,7 @@ class ProfilePage extends StatelessWidget {
           if (!isDoctor)
             GestureDetector(
               onTap: () {
-                // Navigate to the list of doctors
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorsListPage()));
               },
               child: Card(
                 margin: const EdgeInsets.symmetric(vertical: 8),
@@ -95,7 +99,7 @@ class ProfilePage extends StatelessWidget {
           if (!isDoctor)
             GestureDetector(
               onTap: () {
-                // Open QR code scanner or connect to the dispenser
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerPage()));
               },
               child: Card(
                 margin: const EdgeInsets.symmetric(vertical: 8),
@@ -118,7 +122,7 @@ class ProfilePage extends StatelessWidget {
           // Settings Button (Common for Both)
           GestureDetector(
             onTap: () {
-              // Navigate to settings page
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
             },
             child: Card(
               margin: const EdgeInsets.symmetric(vertical: 8),
@@ -144,6 +148,7 @@ class ProfilePage extends StatelessWidget {
             child: TextButton(
               onPressed: () {
                 // Handle logout functionality
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Logged out successfully")));
               },
               child: const Text("Logout", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.red)),
             ),
@@ -151,5 +156,57 @@ class ProfilePage extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// QR Scanner Page
+class QRScannerPage extends StatefulWidget {
+  const QRScannerPage({super.key});
+
+  @override
+  State<QRScannerPage> createState() => _QRScannerPageState();
+}
+
+class _QRScannerPageState extends State<QRScannerPage> {
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  QRViewController? controller;
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Scan Dispenser"), backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
+      body: Column(
+        children: [
+          Expanded(flex: 5, child: QRView(key: qrKey, onQRViewCreated: _onQRViewCreated)),
+          Expanded(
+            flex: 1,
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close scanner
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor),
+                child: const Text("Close Scanner"),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      // Handle scanned data (e.g., pair dispenser with app)
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Scanned: ${scanData.code}")));
+      Navigator.pop(context); // Navigate back after scanning
+    });
   }
 }
