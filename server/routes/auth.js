@@ -6,7 +6,7 @@ const bcrypt = require("bcrypt");
 // Register route
 router.post("/register", async (req, res) => {
   const { name, email, password, role, token } = req.body;
-
+  
   if (!name || !email || !password || !role) {
     return res.status(400).json({ message: "All fields are required." });
   }

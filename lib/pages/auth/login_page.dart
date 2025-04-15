@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:health_guard/pages/patient/patient_main_page.dart';
 import 'register_page.dart';
-import '../home/doctor_dashboard.dart';
+import '../doctor/doctor_main_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LoginPage extends StatelessWidget {
@@ -68,7 +68,7 @@ class LoginPage extends StatelessWidget {
                                 final role = data['user']['role'];
 
                                 if (role == 'doctor') {
-                                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const DoctorDashboard()));
+                                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const DoctorMainPage()));
                                 } else if (role == 'patient') {
                                   Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const PatientMainPage()));
                                 } else {

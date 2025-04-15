@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'medication_details_page.dart';
 
 class MedicationListPage extends StatefulWidget {
   const MedicationListPage({super.key});
@@ -8,52 +9,23 @@ class MedicationListPage extends StatefulWidget {
 }
 
 class _MedicationListPageState extends State<MedicationListPage> {
-  // Mock medication data
   List<Map<String, dynamic>> medications = [
     {"name": "Aspirin", "dose": "100mg", "time": "8:00 AM", "taken": false, "pillsLeft": 5, "type": "pill"},
     {"name": "Vitamin D", "dose": "2000 IU", "time": "12:00 PM", "taken": true, "pillsLeft": 2, "type": "pill"},
     {"name": "Insulin", "dose": "10 units", "time": "6:00 PM", "taken": false, "pillsLeft": null, "type": "injection"},
   ];
 
-  // Device status mock data
   bool _isDeviceConnected = true;
   String _lastSyncedTime = "3 minutes ago";
 
-  // Toggle medication status
   void toggleTaken(int index) {
-    setState(() {
-      medications[index]['taken'] = !medications[index]['taken'];
-    });
+    setState(() => medications[index]['taken'] = !medications[index]['taken']);
   }
 
-  // Request refill
   void requestRefill(String name) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Refill request sent for $name")));
   }
 
-  // Show medication details
-  void showDetails(Map<String, dynamic> med) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder:
-          (_) => Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("${med['name']} Details", style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 20),
-                ListTile(leading: const Icon(Icons.description), title: const Text("Dosage"), subtitle: Text(med['dose'])),
-                ListTile(leading: const Icon(Icons.schedule), title: const Text("Time to take"), subtitle: Text(med['time'])),
-                if (med['pillsLeft'] != null) ListTile(leading: const Icon(Icons.local_pharmacy), title: const Text("Pills Left"), subtitle: Text("${med['pillsLeft']} remaining")),
-              ],
-            ),
-          ),
-    );
-  }
-
-  // Device actions
   void _handleDeviceAction(String action) {
     switch (action) {
       case "Test Device":
@@ -69,7 +41,6 @@ class _MedicationListPageState extends State<MedicationListPage> {
     }
   }
 
-  // Icon for medication type
   IconData _medTypeIcon(String type) {
     switch (type) {
       case "pill":
@@ -92,7 +63,7 @@ class _MedicationListPageState extends State<MedicationListPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Device Status Card
+          // Device Status
           Card(
             elevation: 3,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -126,7 +97,7 @@ class _MedicationListPageState extends State<MedicationListPage> {
 
           // Medication List
           ...medications.map((med) {
-            final int index = medications.indexOf(med);
+            final index = medications.indexOf(med);
             final isLow = med['pillsLeft'] != null && med['pillsLeft'] <= 5;
 
             return Card(
@@ -134,17 +105,16 @@ class _MedicationListPageState extends State<MedicationListPage> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 3,
               child: InkWell(
-                onTap: () => showDetails(med),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => MedicationDetailsPage(med: med)));
+                },
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Leading Icon
                       CircleAvatar(backgroundColor: Colors.blue[50], child: Icon(_medTypeIcon(med['type']), color: Colors.blue)),
                       const SizedBox(width: 16),
-
-                      // Medication Details
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,13 +125,16 @@ class _MedicationListPageState extends State<MedicationListPage> {
                           ],
                         ),
                       ),
-
-                      // Trailing Actions
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           if (isLow) IconButton(onPressed: () => requestRefill(med['name']), icon: const Icon(Icons.local_pharmacy, size: 18, color: Colors.red), tooltip: "Refill"),
-                          Switch(value: med['taken'], onChanged: (_) => toggleTaken(index)),
+                          Switch(
+                            value: med['taken'],
+                            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+                              return const Color.fromARGB(255, 201, 201, 201);
+                            }),
+                            onChanged: (_) => toggleTaken(index),
+                          ),
                         ],
                       ),
                     ],

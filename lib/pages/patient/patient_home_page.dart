@@ -46,6 +46,19 @@ class _PatientHomePageState extends State<PatientHomePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Refill request sent for $name")));
   }
 
+  IconData _medTypeIcon(String? type) {
+    switch (type) {
+      case 'pill':
+        return Icons.medication;
+      case 'injection':
+        return Icons.vaccines;
+      case 'syrup':
+        return Icons.local_drink;
+      default:
+        return Icons.medical_services;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,19 +82,46 @@ class _PatientHomePageState extends State<PatientHomePage> {
           ..._medications.map((med) {
             final int index = _medications.indexOf(med);
             final bool isLow = med['pillsLeft'] != null && med['pillsLeft'] <= 5;
+
             return Card(
-              margin: const EdgeInsets.only(bottom: 12),
+              margin: const EdgeInsets.only(bottom: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 3,
-              child: ListTile(
-                leading: CircleAvatar(backgroundColor: Colors.blue[50], child: Icon(Icons.medication, color: Colors.blue)),
-                title: Text(med['name']),
-                subtitle: Text("${med['dose']} • ${med['time']}"),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Switch(value: med['taken'], onChanged: (_) => _toggleTaken(index)),
-                    if (isLow) TextButton(onPressed: () => _requestRefill(med['name']), child: const Text("Refill", style: TextStyle(fontSize: 12))),
+                    // Leading Icon
+                    CircleAvatar(backgroundColor: Colors.blue[50], child: Icon(_medTypeIcon(med['type']), color: Colors.blue)),
+                    const SizedBox(width: 16),
+
+                    // Medication Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(med['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text("${med['dose']} • ${med['time']}", style: const TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+
+                    // Trailing Actions
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (isLow) IconButton(onPressed: () => _requestRefill(med['name']), icon: const Icon(Icons.local_pharmacy, size: 18, color: Colors.red), tooltip: "Refill"),
+                        Switch(
+                          value: med['taken'],
+                          trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+                            return const Color.fromARGB(255, 201, 201, 201);
+                          }),
+                          onChanged: (_) => _toggleTaken(index),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
